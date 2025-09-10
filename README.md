@@ -2,7 +2,8 @@
 
 ## Overview
 
-Build a small full-stack dApp around the provided Anchor program.  
+Build a small full-stack dApp around the provided Anchor program.
+**DON'T FOCUS ON UI DESIGN**.
 The app must let a user:
 
 1. Create a poll
@@ -95,3 +96,35 @@ You can change Solana program for this task.
 
 #### Goal:
 To reduce on-chain storage costs while still preventing manipulation of the description data.
+
+
+Perfect—here’s a crisp, **requirements-only** spec you can drop into the task.
+
+---
+
+### D) Optional Bonus Task — Index Voting Events
+
+**Goal:** Surface a reliable, queryable history of votes without scanning raw accounts.
+
+#### Program (on-chain)
+
+* Add a **vote event** emitted by the `vote` instruction containing, at minimum:
+
+  * `poll_id: u64`
+  * `candidate: string`
+  * `voter: Pubkey`
+  * `slot: u64`
+* Emit the event **once per successful vote**.
+
+#### Backend (indexer)
+
+* **Ingest** all `vote` invocations in near real time.
+* **Persist** each vote as an immutable record with:
+
+  * `pollId, candidate, voter, signature/txId, slot, blockTime`
+
+#### API
+
+* `GET /polls/:pollId/votes` — chronological vote feed.
+* `GET /polls/:pollId/vote-stats` — aggregated counts per candidate derived from events.
+* `GET /polls/:pollId/voters/:voter` — all votes by a given voter within a poll.
