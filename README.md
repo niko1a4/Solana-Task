@@ -75,7 +75,6 @@ A simple app with wallet adapter and clean UX:
 5. **Views**
    - Polls list (from your backend REST): status badge with countdown (to start / to end)
    - Poll details: candidates, real-time vote counts, and a Vote button per candidate
-   - **Optimistic UI**: after voting, show pending state, then refresh from backend
 
 > Use `@coral-xyz/anchor` client or raw `@solana/web3.js` + `borsh`; either is fine.  
 > For dev UX, include a quick “seed demo data” flow: create a poll that starts ~30s from now and ends ~5 min later.
