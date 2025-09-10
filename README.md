@@ -2,8 +2,9 @@
 
 ## Overview
 
-Build a small full-stack dApp around the provided Anchor program.
-**DON'T FOCUS ON UI DESIGN**.
+Build a small full-stack dApp around the provided Anchor program.<br></br>
+The focus should primarily be on the backend integration, followed by section C), which involves changing the program, and finally, the frontend. **DON'T FOCUS ON UI DESIGN**.
+<br></br>
 The app must let a user:
 
 1. Create a poll
