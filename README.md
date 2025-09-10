@@ -125,6 +125,3 @@ You can change Solana program for this task.
 
 #### Goal:
 To reduce on-chain storage costs while still preventing manipulation of the description data.
-
-
-Perfect—here’s a crisp, **requirements-only** spec you can drop into the task.
