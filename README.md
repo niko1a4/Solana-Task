@@ -18,7 +18,7 @@ You must use a local validator (preferred) or devnet and demonstrate wallet-base
 
 ## What we give you
 
-You already have the program source (below). Candidates should not change the program. They should integrate with it.
+You already have the program source.
 
 - **PollAccount**: seeds = `[b"poll", poll_id.to_le_bytes()]`
 - **CandidateAccount**: seeds = `[poll_id.to_le_bytes(), candidate.as_ref()]`
@@ -82,27 +82,7 @@ A simple app with wallet adapter and clean UX:
 
 ---
 
-### C) Optional bonus task - Off-chain Poll Description With On-chain Integrity
-
-Update your solution so that poll descriptions are **not stored directly on-chain**, but instead stored off-chain by the backend.  
-You can change Solana program for this task.
-
-#### Requirements:
-1. When a poll is created, the on-chain account must only contain a **reference** or **proof** that ties it to the exact off-chain description.
-2. The backend must ensure that:
-   - The description cannot be altered or replaced by anyone after the poll is created.
-   - The description is **verifiable** and matches the reference or proof stored on-chain.
-3. The API should provide an endpoint for retrieving the **verified description** for a given poll.
-
-#### Goal:
-To reduce on-chain storage costs while still preventing manipulation of the description data.
-
-
-Perfect—here’s a crisp, **requirements-only** spec you can drop into the task.
-
----
-
-### D) Optional Bonus Task — Index Voting Events
+### C) Index Voting Events
 
 **Goal:** Surface a reliable, queryable history of votes without scanning raw accounts.
 
@@ -128,3 +108,23 @@ Perfect—here’s a crisp, **requirements-only** spec you can drop into the tas
 * `GET /polls/:pollId/votes` — chronological vote feed.
 * `GET /polls/:pollId/vote-stats` — aggregated counts per candidate derived from events.
 * `GET /polls/:pollId/voters/:voter` — all votes by a given voter within a poll.
+
+---
+
+### D) Optional bonus task - Off-chain Poll Description With On-chain Integrity
+
+Update your solution so that poll descriptions are **not stored directly on-chain**, but instead stored off-chain by the backend.  
+You can change Solana program for this task.
+
+#### Requirements:
+1. When a poll is created, the on-chain account must only contain a **reference** or **proof** that ties it to the exact off-chain description.
+2. The backend must ensure that:
+   - The description cannot be altered or replaced by anyone after the poll is created.
+   - The description is **verifiable** and matches the reference or proof stored on-chain.
+3. The API should provide an endpoint for retrieving the **verified description** for a given poll.
+
+#### Goal:
+To reduce on-chain storage costs while still preventing manipulation of the description data.
+
+
+Perfect—here’s a crisp, **requirements-only** spec you can drop into the task.
