@@ -41,10 +41,10 @@ Test ledger is ignored via `.gitignore` and not included in the repository.
 Program is already deployed on Solana devnet → no need to redeploy
 
 ## Features 
-Create new polls (on-chain)
-Add candidates to a poll
-Vote for a candidate
-Backend indexer syncs poll & candidate data with the database
+Create new polls (on-chain).
+Add candidates to a poll.
+Vote for a candidate.
+Backend indexer syncs poll & candidate data with the database.
 
 ## Program Changes
 The original program did not store the poll ID inside the on-chain account.

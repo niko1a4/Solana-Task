@@ -59,8 +59,9 @@ export default function PollActions() {
             // Poll ID and chain time
             const newPollId = Math.floor(Date.now() / 1000);
             const slot = await connection.getSlot();
-            const blockTime = await connection.getBlockTime(slot);
-            const now = blockTime ?? Math.floor(Date.now() / 1000);
+            const chainTime = await connection.getBlockTime(slot);
+            const startTime = (chainTime ?? Math.floor(Date.now() / 1000)) + 5;
+            const endTime = startTime + 3600;
 
             const [pollPda] = PublicKey.findProgramAddressSync(
                 [Buffer.from('poll'), new BN(newPollId).toArrayLike(Buffer, 'le', 8)],
@@ -70,8 +71,8 @@ export default function PollActions() {
             const tx = await program.methods
                 .initializePoll(
                     new BN(newPollId),
-                    new BN(now),
-                    new BN(now + 3600),
+                    new BN(startTime),
+                    new BN(endTime),
                     'Demo Poll',
                     'Poll description'
                 )
