@@ -1,128 +1,69 @@
-# Solana Voting dApp – Interview Task
+# Solana Voting dApp
 
-## Overview
+This is a full-stack **Solana blockchain voting application** built with **Anchor**.  
+Users can create polls, add candidates, and vote on-chain.  
 
-Build a small full-stack dApp around the provided Anchor program.<br></br>
-The focus should primarily be on the backend integration, followed by section C), which involves changing the program, and finally, the frontend. **DON'T FOCUS ON UI DESIGN**.
-<br></br>
-The app must let a user:
-
-1. Create a poll
-2. Add candidates to a poll
-3. View polls & candidates
-4. Vote for a candidate (enforced by on-chain start/end time)
-5. See live results (off-chain indexed from on-chain accounts)
-
-You must use a local validator (preferred) or devnet and demonstrate wallet-based signing from the frontend.
+The backend works as an **indexer** that listens to Solana program accounts and stores them in a database, while the frontend provides a user interface for interacting with the program.
 
 ---
 
-## What we give you
-
-You already have the program source.
-
-- **PollAccount**: seeds = `[b"poll", poll_id.to_le_bytes()]`
-- **CandidateAccount**: seeds = `[poll_id.to_le_bytes(), candidate.as_ref()]`
-
-### Key fields:
-- **PollAccount.poll_voting_start / poll_voting_end** (u64, unix seconds)
-- **CandidateAccount.candidate_name** (<= 32 chars), **candidate_votes** (u64)
-
-### Program errors:
-- **VotingNotStarted**
-- **VotingEnded**
+## Project Structure
+- **/backend** – NestJS service + indexer for syncing blockchain state to the database  
+- **/frontend** – React (Vite) app using `@solana/wallet-adapter` and Anchor client  
+- **/solana** – Anchor smart contract (program) and IDL  
 
 ---
 
-## Deliverables
+## How to Run
 
-### A) Backend (Node/TypeScript)
+First, install dependencies in each directory:
+```bash
+npm install
+```
+### 1. Start backend
+```bash 
+cd backend
+npm run start
+```
+### 2. Start frontend
+```bash
+cd frontend
+npm run dev
+```
+The app will be available at http://localhost:5173 . 
 
-Implement a minimal indexer + REST API:
+### 3. Solana program
+You dont need to start Solana program, it's already deployed at devnet.
 
-1. **Indexer**
-   - Connect to the same cluster as the frontend (localnet/devnet).
-   - Use websockets to monitor data accounts and store them in database:
-     - All `PollAccount`s
-     - All `CandidateAccount`s
+## Configuration 
+RPC endpoint and program ID are stored in `.env` files (both backend and frontend)
+Test ledger is ignored via `.gitignore` and not included in the repository.
+Program is already deployed on Solana devnet → no need to redeploy
 
-2. **REST API**
-   - `GET /polls` → list: `{ pollId, name, description, start, end, status, totalVotes }`
-   - `GET /polls/:pollId` → details + candidates:  
-     `{ pollId, name, description, start, end, status, candidates: [{ name, votes }] }`
-   - `GET /polls/:pollId/leaderboard` → sorted candidates by votes desc
-   - No private keys or signing on the backend.
+## Features 
+Create new polls (on-chain)
+Add candidates to a poll
+Vote for a candidate
+Backend indexer syncs poll & candidate data with the database
 
-3. **Env / Config**
-   - `.env` with `RPC_URL`, `CLUSTER` (localnet|devnet), DB url.
-   - Simple README with setup commands.
+## Program Changes
+The original program did not store the poll ID inside the on-chain account.
+To fix this and make indexing easier, two small changes were made to the Anchor code:
 
----
+1. Inside the `initialize_poll` instruction, added:
+```rust
+ctx.accounts.poll_account.poll_id = _poll_id;
+```
 
-### B) Frontend (React/TypeScript)
+2. In the PollAccount struct, added:
+```rust
+pub poll_id: u64,
+```
+These changes ensure that every PollAccount now keeps track of its own poll ID on-chain,
+allowing the backend indexer to directly read and link candidates and votes to the correct poll.
 
-A simple app with wallet adapter and clean UX:
+## Devnet Deployment
+Program is deployed on Solana devnet. You can view it on the Explorer:
+https://explorer.solana.com/address/5DbjRocMRzCHuKgQAJ2TVTkp3JKkG6oZM6QTy5xesvt?cluster=devnet
 
-1. **Connect Wallet** (Phantom/Solflare etc.)
-2. **Create Poll**
-   - Inputs: `pollId` (u64), `name` (<= 32), `description` (<= 280), `startTime`, `endTime` (unix seconds)
-   - Transaction: `initialize_poll`
-3. **Add Candidate**
-   - Inputs: `pollId`, `candidateName` (<= 32)
-   - Transaction: `initialize_candidate`
-4. **Vote**
-   - Inputs: `pollId`, `candidateName`
-   - Transaction: `vote`
-   - Handle and display program errors (VotingNotStarted, VotingEnded)
-5. **Views**
-   - Polls list (from your backend REST): status badge with countdown (to start / to end)
-   - Poll details: candidates, real-time vote counts, and a Vote button per candidate
-
-> Use `@coral-xyz/anchor` client or raw `@solana/web3.js` + `borsh`; either is fine.  
-> For dev UX, include a quick “seed demo data” flow: create a poll that starts ~30s from now and ends ~5 min later.
-
----
-
-### C) Index Voting Events
-
-**Goal:** Surface a reliable, queryable history of votes without scanning raw accounts.
-
-#### Program (on-chain)
-
-* Add a **vote event** emitted by the `vote` instruction containing, at minimum:
-
-  * `poll_id: u64`
-  * `candidate: string`
-  * `voter: Pubkey`
-  * `slot: u64`
-* Emit the event **once per successful vote**.
-
-#### Backend (indexer)
-
-* **Ingest** all `vote` invocations in near real time.
-* **Persist** each vote as an immutable record with:
-
-  * `pollId, candidate, voter, signature/txId, slot, blockTime`
-
-#### API
-
-* `GET /polls/:pollId/votes` — chronological vote feed.
-* `GET /polls/:pollId/vote-stats` — aggregated counts per candidate derived from events.
-* `GET /polls/:pollId/voters/:voter` — all votes by a given voter within a poll.
-
----
-
-### D) Optional bonus task - Off-chain Poll Description With On-chain Integrity
-
-Update your solution so that poll descriptions are **not stored directly on-chain**, but instead stored off-chain by the backend.  
-You can change Solana program for this task.
-
-#### Requirements:
-1. When a poll is created, the on-chain account must only contain a **reference** or **proof** that ties it to the exact off-chain description.
-2. The backend must ensure that:
-   - The description cannot be altered or replaced by anyone after the poll is created.
-   - The description is **verifiable** and matches the reference or proof stored on-chain.
-3. The API should provide an endpoint for retrieving the **verified description** for a given poll.
-
-#### Goal:
-To reduce on-chain storage costs while still preventing manipulation of the description data.
+## License : MIT

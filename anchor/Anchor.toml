@@ -6,13 +6,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-voting = "5s3PtT8kLYCv1WEp6dSh3T7EuF35Z6jSu5Cvx4hWG79H"
+voting = "5DbjRocMRzCHuKgQAJ2TVTkp3JKkG6oZM6QTy5xesvt"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

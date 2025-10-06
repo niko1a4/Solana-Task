@@ -1,17 +1,21 @@
+#![allow(deprecated)]
 use anchor_lang::prelude::*;
 
-declare_id!("5s3PtT8kLYCv1WEp6dSh3T7EuF35Z6jSu5Cvx4hWG79H");
+declare_id!("5DbjRocMRzCHuKgQAJ2TVTkp3JKkG6oZM6QTy5xesvt");
 
 #[program]
 pub mod voting {
     use super::*;
 
-    pub fn initialize_poll(ctx: Context<InitializePoll>, 
-                            _poll_id: u64, 
-                            start_time: u64, 
-                            end_time: u64,
-                            name: String,
-                            description: String) -> Result<()> {
+    pub fn initialize_poll(
+        ctx: Context<InitializePoll>,
+        _poll_id: u64,
+        start_time: u64,
+        end_time: u64,
+        name: String,
+        description: String,
+    ) -> Result<()> {
+        ctx.accounts.poll_account.poll_id = _poll_id;
         ctx.accounts.poll_account.poll_name = name;
         ctx.accounts.poll_account.poll_description = description;
         ctx.accounts.poll_account.poll_voting_start = start_time;
@@ -19,9 +23,11 @@ pub mod voting {
         Ok(())
     }
 
-    pub fn initialize_candidate(ctx: Context<InitializeCandidate>, 
-                                _poll_id: u64, 
-                                candidate: String) -> Result<()> {
+    pub fn initialize_candidate(
+        ctx: Context<InitializeCandidate>,
+        _poll_id: u64,
+        candidate: String,
+    ) -> Result<()> {
         ctx.accounts.candidate_account.candidate_name = candidate;
         ctx.accounts.poll_account.poll_option_index += 1;
         Ok(())
@@ -41,9 +47,16 @@ pub mod voting {
 
         candidate_account.candidate_votes += 1;
 
+        let slot = Clock::get()?.slot;
+        emit!(VoteEvent {
+            poll_id: _poll_id,
+            candidate: _candidate,
+            voter: ctx.accounts.signer.key(),
+            slot,
+        });
+
         Ok(())
     }
-    
 }
 
 #[derive(Accounts)]
@@ -114,7 +127,8 @@ pub struct CandidateAccount {
 
 #[account]
 #[derive(InitSpace)]
-pub struct PollAccount{
+pub struct PollAccount {
+    pub poll_id: u64,
     #[max_len(32)]
     pub poll_name: String,
     #[max_len(280)]
@@ -130,4 +144,12 @@ pub enum ErrorCode {
     VotingNotStarted,
     #[msg("Voting has ended")]
     VotingEnded,
+}
+
+#[event]
+pub struct VoteEvent {
+    pub poll_id: u64,
+    pub candidate: String,
+    pub voter: Pubkey,
+    pub slot: u64,
 }
